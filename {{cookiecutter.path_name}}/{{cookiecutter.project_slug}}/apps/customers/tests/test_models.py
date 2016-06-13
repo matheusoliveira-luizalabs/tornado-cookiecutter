@@ -12,9 +12,8 @@ def test_customer_create(db):
 
     assert customer.id == 1
 
-
 @pytest.mark.gen_test
-def test_customer_delete(db):
+def test_customer_delete():
     customer = Customer(name='Matheus Oliveira').save()
     customer.delete()
 

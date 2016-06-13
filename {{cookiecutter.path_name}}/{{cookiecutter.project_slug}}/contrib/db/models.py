@@ -1,7 +1,7 @@
 from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import declarative_base
 
-from settings import settings
+from simple_settings import settings
 
 from .engine import Engine
 

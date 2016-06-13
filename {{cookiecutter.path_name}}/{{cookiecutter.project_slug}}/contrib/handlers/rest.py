@@ -7,7 +7,7 @@ from restless.exceptions import MethodNotImplemented
 
 from raven import Client
 
-from settings import settings
+from simple_settings import settings
 
 
 class PaginationMixin(object):
@@ -57,9 +57,9 @@ class MetaSchemaMixin(object):
 
     def meta_schema(self, data):
         schema = {
-            'name': app.info('name'),
+            'name': app.Application.info('name'),
             'server': self.hostname(),
-            'version': app.info('version'),
+            'version': app.Application.info('version'),
             'record_count': self.data_count(data)
         }
         return schema

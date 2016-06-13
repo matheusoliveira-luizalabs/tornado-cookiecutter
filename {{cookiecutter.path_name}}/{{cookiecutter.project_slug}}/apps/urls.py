@@ -3,7 +3,7 @@ from tornado.web import URLSpec as url
 
 from contrib.urls import include
 
-from settings import settings
+from simple_settings import settings
 
 from apps.core.views import HomeHandler
 from apps.core.views import DocsHandler

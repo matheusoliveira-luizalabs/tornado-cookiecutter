@@ -1,1 +1,1 @@
--r requirements/production.txt
+-r {{cookiecutter.project_slug}}/requirements/production.txt

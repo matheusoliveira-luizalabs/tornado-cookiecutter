@@ -1,11 +1,11 @@
+# set env
 import os
-os.environ.setdefault('TORNADO_SETTINGS_MODULE', 'settings.test')
+os.environ.setdefault('SIMPLE_SETTINGS', 'apps.settings.test')
 
 import pytest
-
 from app import make_app
 
-from contrib.db import session
+from contrib.db import session as db_session
 from contrib.db import Model
 
 from mixer.backend.sqlalchemy import Mixer
@@ -16,12 +16,7 @@ def app(request):
     return make_app()
 
 
-@pytest.fixture
-def mixer():
-    return Mixer(session=session)
-
-
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope='module')
 def db(request):
     Model.create_all()
 
@@ -29,3 +24,13 @@ def db(request):
         Model.drop_all()
 
     request.addfinalizer(teardown)
+
+
+@pytest.fixture(scope='session')
+def session():
+    return db_session
+
+
+@pytest.fixture
+def mixer(session):
+    return Mixer(session=session)

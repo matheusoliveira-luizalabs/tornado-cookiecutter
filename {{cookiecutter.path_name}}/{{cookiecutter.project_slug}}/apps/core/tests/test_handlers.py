@@ -13,5 +13,6 @@ def test_root_url(http_client, base_url):
 def test_healthcheck(http_client, base_url):
     ' GET /healthcheck should be return 200 '
     resp = yield http_client.fetch('{}/{}'.format(base_url, 'healthcheck'))
+
     assert resp.code == 200
     assert 'application/json' in resp.headers['Content-Type']

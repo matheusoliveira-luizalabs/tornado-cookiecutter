@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 
-from settings import settings
+from simple_settings import settings
 
 
 class Engine(object):
@@ -16,11 +16,11 @@ class Engine(object):
 
         DATABASES = {
             'default': {
-                'engine': 'sqlite,
+                'engine': 'sqlite',
                 'name: 'db.sqlite3'
             },
             'other': {
-                'engine': 'sqlite,
+                'engine': 'sqlite',
                 'name: 'other.sqlite3'
             }
         }
@@ -49,7 +49,7 @@ class Engine(object):
 
             DATABASES = {
                 'default': {
-                    'engine': 'sqlite,
+                    'engine': 'sqlite',
                     'name: 'db.sqlite3'
                 }
             }
@@ -69,7 +69,7 @@ class Engine(object):
 
             DATABASES = {
                 'default': {
-                    'engine': 'sqlite,
+                    'engine': 'sqlite',
                     'name: 'db.sqlite3'
                 }
             }
@@ -112,18 +112,22 @@ class Engine(object):
         """
         parse_string = self.parse_connection_string(connection_string)
 
+        SQL_POOL_RECYCLE = getattr(settings, 'SQL_POOL_RECYCLE', 60)
+        SQL_ECHO = getattr(settings, 'SQL_ECHO', False)
+
         if parse_string:
             return create_engine(parse_string,
                                  logging_name=name,
-                                 echo=settings.SQL_ECHO)
+								 pool_recycle=SQL_POOL_RECYCLE,
+                                 echo=SQL_ECHO)
         else:
             raise ValueError('Connection string not parsed')
 
-    def parse_connection_string(self, data):
+    def parse_connection_string(self, db):
         """
         Create a connection string based at engine key
 
-        :param data: dict database config
+        :param db: dict database config
 
         Example:
 
@@ -133,10 +137,10 @@ class Engine(object):
             }
 
             engine.parse_connection_string(engine)
-            >>> 'sqlite:///db.sqlite3
+            >>> 'sqlite:///db.sqlite3'
         """
-        if data['ENGINE'] == 'sqlite':
+        if db['ENGINE'] in ['sqlite', 'sqlite3']:
             conn_string = '{ENGINE}:///{NAME}'
         else:
             conn_string = '{ENGINE}://{USER}:{PASSWORD}@{HOST}:{PORT}/{NAME}'
-        return conn_string.format(**data)
+        return conn_string.format(**db)
