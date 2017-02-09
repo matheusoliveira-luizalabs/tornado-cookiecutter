@@ -1,42 +1,27 @@
 import socket
 
+import tornado.web
+
 import app
 
-from restless.tnd import TornadoResource as RestlessResource
-from restless.exceptions import MethodNotImplemented
+from contrib.db.session import session
 
-from raven import Client
-
-from simple_settings import settings
+from .exceptions import MethodNotImplemented
 
 
-class PaginationMixin(object):
-    limit = 20
-    offset = 1
+class SerializerMixin(object):
 
-    def get_queryset(self):
-        return MethodNotImplemented()
+    def serialize_list(self, data):
+        return self.schema().dump(data, many=True)
 
-    def list(self):
-        qs = self.get_queryset()
-        self.paginate(qs)
-        return self.objects
-
-    def paginate(self, qs):
-        self.objects = qs.limit(self.limit).offset(self.offset)
-
-    def links(self):
-        links = {}
-        return links
-
-    def wrap_list_response(self, data):
-        response = super(PaginationMixin, self).wrap_list_response(data)
-        response['links'] = self.links()
-
-        return response
+    def serialize_detail(self, data):
+        return self.schema().dump(data)
 
 
-class MetaSchemaMixin(object):
+class MetaMixin(object):
+
+    def set_meta(self, data):
+        return self.meta_schema(data)
 
     def hostname(self, use_hostname=False):
         hostname = socket.gethostname()
@@ -64,52 +49,60 @@ class MetaSchemaMixin(object):
         }
         return schema
 
+    def write(self, chunck):
+        chunck['meta'] = self.set_meta(chunck['objects'])
+        super(MetaMixin, self).write(chunck)
 
-class MetaHandlerMixin(MetaSchemaMixin):
 
-    def set_meta(self, data):
-        return self.meta_schema(data)
+class BaseRestHandler(SerializerMixin, MetaMixin):
 
     def wrap_list_response(self, data):
-        response = super(MetaHandlerMixin, self).wrap_list_response(data)
-
-        response['meta'] = self.set_meta(data)
-        return response
+        serialize = self.serialize_list(data)
+        return serialize.data
 
     def wrap_object_response(self, data):
+        serialize = self.serialize_detail(data)
+        return serialize.data
+
+    def wrap_response(self, data):
+        objects = []
+
+        if isinstance(data, list):
+            objects = self.wrap_list_response(data)
+        else:
+            objects.append(self.wrap_object_response(data))
+
         response = {
-            'meta': self.set_meta(data)
+            'objects': objects
         }
         return response
 
-
-class SentryRestlessMixin(object):
-    sentry_client = Client(settings.SENTRY_DSN)
-
-    def handle_error(self, err):
-        self.sentry_client.captureException()
-        return super(SentryRestlessMixin, self).handle_error(err)
-
-
-class BaseHandlerMixin(MetaHandlerMixin, SentryRestlessMixin, PaginationMixin):
-    pass
+    def write(self, chunck, meta=True):
+        if meta:
+            data = self.wrap_response(chunck)
+        else:
+            data = chunck
+        super(BaseRestHandler, self).write(data)
 
 
-class RestHandler(BaseHandlerMixin, RestlessResource):
-    """
-    Rest resource handler
-    """
-    def is_authenticated(self):
-        return True
+class RestHandler(BaseRestHandler, tornado.web.RequestHandler):
 
-    def wrap_object_response(self, data):
-        response = super(RestHandler, self).wrap_object_response(data)
+    def get(self, id=None):
+        if not id:
+            return self.list()
+        else:
+            return self.detail(id)
 
-        response['object'] = data
-        return response
+    def list(self):
+        raise MethodNotImplemented()
 
-    def serialize_detail(self, data):
-        serialize = super(RestHandler, self).serialize_detail(data)
+    def detail(self, id):
+        raise MethodNotImplemented()
 
-        final_data = self.serializer.deserialize(serialize)
-        return self.wrap_object_response(final_data)
+    def get_or_404(self, id):
+        obj = session.query(self.model).get(id)
+        if obj:
+            return obj
+        else:
+            self.set_status(404)
+            self.write('{0} Not Found'.format(self.model.__name__), meta=False)

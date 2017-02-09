@@ -1,4 +1,6 @@
+apispec==0.12.0
 flake8==2.5.4
+mashmallow==2.7.3
 pymssql==2.1.2
 raven==5.17.0
 restless==2.0.1

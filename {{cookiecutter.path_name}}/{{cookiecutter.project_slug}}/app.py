@@ -7,6 +7,8 @@ import tornado.options
 
 from simple_settings import settings
 
+from contrib.handlers.exceptions import BaseException
+
 from apps.urls import urls
 
 
@@ -21,9 +23,14 @@ class Application(tornado.web.Application):
         'static_path': settings.STATIC_ROOT,
         'static_url_prefix': settings.STATIC_URL,
     }
+    default_handler_class = BaseException
 
     def __init__(self):
-        tornado.web.Application.__init__(self, urls, **self.settings)
+        tornado.web.Application.__init__(
+            self,
+            urls,
+            **self.settings,
+            default_handler_class=self.default_handler_class)
 
     @classmethod
     def info(cls, attr):

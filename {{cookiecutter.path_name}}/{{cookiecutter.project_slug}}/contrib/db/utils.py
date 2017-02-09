@@ -1,4 +1,4 @@
-from restless.exceptions import NotFound
+from contrib.handlers.exceptions import NotFound
 
 from .session import session
 
@@ -35,4 +35,4 @@ def get_or_404(_model, id, bind=None):
     if obj:
         return obj
     else:
-        raise NotFound('{0} not found'.format(_model.__name__))
+        raise NotFound(reason='{0} not found'.format(_model.__name__))

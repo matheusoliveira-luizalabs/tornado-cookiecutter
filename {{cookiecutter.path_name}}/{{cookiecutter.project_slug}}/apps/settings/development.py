@@ -2,16 +2,16 @@ import os
 
 from .base import *
 
-SQL_ECHO = True
+SQL_ECHO = False
 
 DATABASES = {
     'default': {
-        'ENGINE': 'sqlite',
-        'HOST': '',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        'USER': '',
-        'PASSWORD': '',
-        'PORT': ''
+        'ENGINE': 'mssql+pymssql',
+        'HOST': 's500devsql01.magazineluiza.intranet',
+        'NAME': 'dbmagazine_xp',
+        'USER': 'devfcamara',
+        'PASSWORD': 'DEVFCAMARA',
+        'PORT': 1433
     }
 }
 

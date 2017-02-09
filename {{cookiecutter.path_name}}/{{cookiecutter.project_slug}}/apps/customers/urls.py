@@ -4,6 +4,6 @@ from .api import CustomerHandler
 
 
 urls = [
-    url(r'', CustomerHandler.as_list()),
-    url(r'\/(?P<id>[\d]+)', CustomerHandler.as_detail()),
+    url(r'', CustomerHandler),
+    url(r'\/(?P<id>[\d]+)', CustomerHandler)
 ]

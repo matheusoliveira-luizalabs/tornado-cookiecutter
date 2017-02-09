@@ -6,9 +6,6 @@ from contrib.handlers import RestHandler
 
 
 class HealthcheckHandler(RestHandler):
-    preparer = FieldsPreparer(fields={
-        'message': 'message'
-    })
 
     @gen.coroutine
     def list(self):
